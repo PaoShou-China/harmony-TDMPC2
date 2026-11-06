@@ -1,4 +1,5 @@
 import dataclasses
+import operator
 import re
 
 import torch
@@ -29,10 +30,12 @@ def cfg_to_dataclass(cfg, frozen=False):
 
 
 def _validate_cfg(cfg: OmegaConf) -> None:
-	"""Fail early on invalid training and evaluation settings."""
+	"""Validate resolved experiment settings and the selected CUDA device."""
 	for key in ("steps", "batch_size", "horizon", "eval_freq", "eval_episodes"):
 		value = cfg.get(key, None)
-		if value is not None and int(value) <= 0:
+		if value is None:
+			continue
+		if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
 			raise ValueError(f"Configuration '{key}' must be a positive integer, got {value!r}.")
 
 	device_name = str(cfg.get("device", "cuda:0"))
@@ -57,8 +60,6 @@ def parse_cfg(cfg: OmegaConf) -> OmegaConf:
 	Parses a Hydra config. Mostly for convenience.
 	"""
 
-	_validate_cfg(cfg)
-
 	# Logic
 	for k in cfg.keys():
 		try:
@@ -73,11 +74,14 @@ def parse_cfg(cfg: OmegaConf) -> OmegaConf:
 		try:
 			v = cfg[k]
 			if isinstance(v, str):
-				match = re.match(r"(\d+)([+\-*/])(\d+)", v)
+				match = re.fullmatch(r"(\d+)([+\-*/])(\d+)", v)
 				if match:
-					cfg[k] = eval(match.group(1) + match.group(2) + match.group(3))
-					if isinstance(cfg[k], float) and cfg[k].is_integer():
-						cfg[k] = int(cfg[k])
+					left, operation, right = int(match.group(1)), match.group(2), int(match.group(3))
+					if operation == "/" and right == 0:
+						raise ValueError(f"Invalid zero divisor in configuration expression {v!r}.")
+					operations = {"+": operator.add, "-": operator.sub, "*": operator.mul, "/": operator.truediv}
+					result = operations[operation](left, right)
+					cfg[k] = int(result) if isinstance(result, float) and result.is_integer() else result
 		except:
 			pass
 
@@ -105,4 +109,5 @@ def parse_cfg(cfg: OmegaConf) -> OmegaConf:
 		cfg.task_dim = 0
 	cfg.tasks = TASK_SET.get(cfg.task, [cfg.task])
 
+	_validate_cfg(cfg)
 	return cfg_to_dataclass(cfg)
