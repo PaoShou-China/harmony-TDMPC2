@@ -1,3 +1,7 @@
+<p align="center"><a href="https://paoshou-china.github.io/harmony-TDMPC2/"><strong>Project homepage ↗</strong></a></p>
+
+![Rocket landing trajectory illustration](assets/hero.svg)
+
 # harmony-TDMPC2: TD-MPC2 for PyFlyt Rocket Landing
 
 This repository adapts a TD-MPC2 training codebase to the Gymnasium task
