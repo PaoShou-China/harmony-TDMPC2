@@ -3,6 +3,7 @@ defaults:
 
 # environment
 task: PyFlyt/Rocket-Landing-v4
+device: cuda:0
 obs: state
 episodic: True
 mode: nominal
