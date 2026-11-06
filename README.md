@@ -74,17 +74,17 @@ configuration has WandB disabled by default.
 
 ## Evaluate
 
-Set `checkpoint` to a valid model path and choose evaluation settings, for
-example:
+Use the dedicated `evaluate.py` entry point. Override the example checkpoint
+path from `config_e.yaml` with a path that exists on your machine:
 
 ```bash
-python train.py model_size=5 checkpoint=/path/to/model.pt eval_episodes=10 steps=1
+python evaluate.py model_size=5 checkpoint=/path/to/model.pt eval_episodes=10
 ```
 
-Evaluation behavior depends on the trainer and configuration. For a dedicated
-evaluation workflow, use the project evaluation scripts/configurations
-available in the repository and verify the selected checkpoint and task before
-running.
+Evaluation requires CUDA as currently implemented. Results are printed to the
+console and per-episode reward/success values are written to
+`evaluate_<seed>.csv`. Video output is controlled by `save_video` in the
+evaluation configuration.
 
 ## Demo videos
 
