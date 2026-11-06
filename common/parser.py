@@ -69,21 +69,18 @@ def parse_cfg(cfg: OmegaConf) -> OmegaConf:
 		except:
 			pass
 
-	# Algebraic expressions
+	# Algebraic expressions: support the original integer-only notation without eval.
 	for k in cfg.keys():
-		try:
-			v = cfg[k]
-			if isinstance(v, str):
-				match = re.fullmatch(r"(\d+)([+\-*/])(\d+)", v)
-				if match:
-					left, operation, right = int(match.group(1)), match.group(2), int(match.group(3))
-					if operation == "/" and right == 0:
-						raise ValueError(f"Invalid zero divisor in configuration expression {v!r}.")
-					operations = {"+": operator.add, "-": operator.sub, "*": operator.mul, "/": operator.truediv}
-					result = operations[operation](left, right)
-					cfg[k] = int(result) if isinstance(result, float) and result.is_integer() else result
-		except:
-			pass
+		v = cfg[k]
+		if isinstance(v, str):
+			match = re.fullmatch(r"(\d+)([+\-*/])(\d+)", v)
+			if match:
+				left, operation, right = int(match.group(1)), match.group(2), int(match.group(3))
+				if operation == "/" and right == 0:
+					raise ValueError(f"Invalid zero divisor in configuration expression {v!r}.")
+				operations = {"+": operator.add, "-": operator.sub, "*": operator.mul, "/": operator.truediv}
+				result = operations[operation](left, right)
+				cfg[k] = int(result) if isinstance(result, float) and result.is_integer() else result
 
 	# Convenience
 	cfg.work_dir = Path(hydra.utils.get_original_cwd()) / 'logs' / cfg.task / str(cfg.seed) / cfg.exp_name
