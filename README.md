@@ -33,6 +33,17 @@ success condition, and physical simulation. Check the installed task
 implementation for those details; this repository's wrapper does not redefine
 them.
 
+## Method structure in this implementation
+
+The configured training path connects the PyFlyt task adapter to the TD-MPC2 agent and replay buffer:
+
+1. The environment wrapper converts task observations to tensors and scales actions to the environment's expected range.
+2. The world model encodes observations and predicts latent transitions, reward, and (for episodic tasks) termination.
+3. The planning routine evaluates sampled candidate action sequences over the configured horizon.
+4. Online or offline trainers update the model from replay-buffer sequences and periodically evaluate checkpoints.
+
+The default compute device is `cuda:0`; select another CUDA device with the Hydra override `device=cuda:1` when needed. The source config remains the authority for all experiment values.
+
 ## Requirements
 
 The supplied `environment.yaml` specifies Python 3.9, PyTorch 2.6.0
