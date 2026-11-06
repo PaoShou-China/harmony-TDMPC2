@@ -42,7 +42,7 @@ The configured training path connects the PyFlyt task adapter to the TD-MPC2 age
 3. The planning routine evaluates sampled candidate action sequences over the configured horizon.
 4. Online or offline trainers update the model from replay-buffer sequences and periodically evaluate checkpoints.
 
-The default compute device is `cuda:0`; select another CUDA device with the Hydra override `device=cuda:1` when needed. The source config remains the authority for all experiment values.
+The default compute device is `cuda:0`; select another CUDA device with the Hydra override `device=cuda:1` when needed. Configuration parsing checks positive run sizes, CUDA availability, and whether the requested device index exists before starting. The source config remains the authority for all experiment values.
 
 ## Requirements
 
