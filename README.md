@@ -1,62 +1,102 @@
-# harmony-TDMPC2: Precision Rocket Landing with Advanced Reinforcement Learning
+# harmony-TDMPC2: TD-MPC2 for PyFlyt Rocket Landing
 
-This repository showcases the power of **harmony-TDMPC2**, a novel reinforcement learning algorithm, applied to the critical challenge of autonomous rocket landing.
+This repository adapts a TD-MPC2 training codebase to the Gymnasium task
+`PyFlyt/Rocket-Landing-v4`. It includes the TD-MPC2 implementation, a PyFlyt
+environment adapter, rocket parameter randomization, and default Hydra
+configuration for the rocket task.
 
-## Project Highlights
+The repository name and the `harmony` configuration option refer to
+project-specific additions. The README does not claim that these additions
+are a separately validated state-of-the-art algorithm. For scientific
+comparisons, use the configurations and evaluation protocol described by the
+associated project materials.
 
-We've trained an agent using **harmony-TDMPC2** to achieve safe and efficient rocket landings. This project demonstrates the algorithm's capability in mastering complex dynamics and optimizing control policies within simulated rocket landing environments.
+## What is implemented
 
-## Visual Proof of Success
+- `train.py` starts online or offline TD-MPC2 training using Hydra.
+- `config.yaml` selects `PyFlyt/Rocket-Landing-v4`, state observations, and
+  randomized vehicle parameters by default.
+- `envs/pyflyt.py` creates the PyFlyt task, wraps actions to the range
+  `[-1, 1]`, converts observations to `float32`, and maps the environment's
+  `env_complete` info field to the trainer's `success` metric.
+- The rocket parameter template in `envs/pyflyt.py` defines nominal values
+  and, for selected parameters, uniform randomization ranges.
+- `config_e.yaml` is an example evaluation configuration. Its checkpoint
+  path must be replaced with a path that exists on your machine.
 
-Witness the **harmony-TDMPC2** agent's successful rocket landings in action:
+The underlying PyFlyt task supplies the actual observation fields, reward,
+success condition, and physical simulation. Check the installed task
+implementation for those details; this repository's wrapper does not redefine
+them.
+
+## Requirements
+
+The supplied `environment.yaml` specifies Python 3.9, PyTorch 2.6.0
+development build with CUDA 12.4, PyFlyt 0.30.0, and the project dependencies.
+Training currently requires a working CUDA-enabled PyTorch installation:
+`train.py` uses CUDA-specific training paths and stops with an explanatory
+error when CUDA is unavailable. The exact driver/GPU compatibility depends on
+your system.
+
+Create the environment:
+
+```bash
+conda env create -f environment.yaml
+conda activate tdmpc2
+```
+
+### Rocket task dependency
+
+The code requests the Gymnasium ID `PyFlyt/Rocket-Landing-v4`. The supplied
+environment file pins `PyFlyt==0.30.0`, while the repository's earlier setup
+instructions refer to a custom PyFlyt fork. Confirm that the installed PyFlyt
+package registers this task and includes the expected rocket implementation.
+If it does not, follow the custom fork's installation instructions and record
+the exact fork commit used; do not copy files into an unspecified package
+directory.
+
+## Train
+
+The default task is the rocket landing task. For a short run to check startup:
+
+```bash
+python train.py model_size=5 steps=10000
+```
+
+Use `steps`, `seed`, `mode`, `harmony`, and other Hydra configuration
+overrides to select the experiment. For example, `mode=nominal` disables
+random sampling of the parameter template in favor of its configured nominal
+values. See `config.yaml` for the full set of training and planning settings.
+
+Runs are written below `logs/<task>/<seed>/<exp_name>/`; the logger saves
+models under its `models/` subdirectory when model saving is enabled. The
+configuration has WandB disabled by default.
+
+## Evaluate
+
+Set `checkpoint` to a valid model path and choose evaluation settings, for
+example:
+
+```bash
+python train.py model_size=5 checkpoint=/path/to/model.pt eval_episodes=10 steps=1
+```
+
+Evaluation behavior depends on the trainer and configuration. For a dedicated
+evaluation workflow, use the project evaluation scripts/configurations
+available in the repository and verify the selected checkpoint and task before
+running.
+
+## Demo videos
+
+The following clips are illustrative examples; they are not a substitute for
+the reproducible evaluation protocol or its reported metrics.
 
 <p align="center">
-  <img src="https://github.com/PaoShou-China/harmony-TDMPC2/blob/main/video/1.gif" width="30%" alt="Rocket Landing Demo 1"/>
-  <img src="https://github.com/PaoShou-China/harmony-TDMPC2/blob/main/video/2.gif" width="30%" alt="Rocket Landing Demo 2"/>
-  <img src="https://github.com/PaoShou-China/harmony-TDMPC2/blob/main/video/3.gif" width="30%" alt="Rocket Landing Demo 3"/>
+  <img src="https://github.com/PaoShou-China/harmony-TDMPC2/blob/main/video/1.gif" width="30%" alt="Rocket landing demo 1"/>
+  <img src="https://github.com/PaoShou-China/harmony-TDMPC2/blob/main/video/2.gif" width="30%" alt="Rocket landing demo 2"/>
+  <img src="https://github.com/PaoShou-China/harmony-TDMPC2/blob/main/video/3.gif" width="30%" alt="Rocket landing demo 3"/>
 </p>
-
-## Core Features
-
-*   **Advanced Reinforcement Learning:** Utilizes cutting-edge RL techniques for optimal control.
-*   **harmony-TDMPC2 Algorithm:** Implements a state-of-the-art TDMPC2 with unique harmony-inspired enhancements.
-*   **Rocket Landing Focus:** Specifically engineered for the intricate control of rocket trajectories and precise landings.
-*   **Simulation-Driven:** Developed and rigorously tested in a high-fidelity simulation environment.
-
-## Quick Start Guide
-
-Get your environment set up and run the project with these simple steps:
-
-1.  **Clone the Repository:**
-    ```bash
-    git clone https://github.com/PaoShou-China/harmony-TDMPC2.git
-    cd harmony-TDMPC2
-    ```
-
-2.  **Set Up Conda Environment & Dependencies:**
-    All project dependencies, including `tdmpc2`, are managed via `environment.yaml`.
-
-    *   **Create and Activate Environment:**
-        ```bash
-        conda env create -f environment.yaml
-        conda activate tdmpc2
-        ```
-        *(Note: The environment name `tdmpc2` is assumed from `environment.yaml`. Adjust if your file specifies a different name.)*
-
-    *   **Integrate Custom PyFlyt Version:**
-        This project requires a specific version of PyFlyt, available at [https://github.com/defrag-bambino/MyPyFlyt/tree/master](https://github.com/defrag-bambino/MyPyFlyt/tree/master).
-        After activating your Conda environment, please manually replace the `[PyFlyt/gym_envs/rocket_envs/rocket_landing_env.py]` files in your project directory with the corresponding files from the `MyPyFlyt` repository. Refer to the `MyPyFlyt` repository for detailed integration instructions.
-
-3.  **Run the Simulation:**
-    With your environment activated, execute the training script:
-    ```bash
-    python train.py
-    ```
-
-## Contribute
-
-We welcome your contributions! Feel free to submit pull requests or open issues.
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+This project is distributed under the MIT License; see [LICENSE](LICENSE).
