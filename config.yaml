@@ -7,8 +7,8 @@ defaults:
 # Specify the reinforcement learning environment to be used.
 task: PyFlyt/Rocket-Landing-v4
 # CUDA device used by the agent and replay-buffer batches.
-# Keep cuda:1 to preserve the existing default experiment placement.
-device: cuda:1
+# cuda:0 works on single-GPU systems; override with device=cuda:1 when needed.
+device: cuda:0
 # Specify the observation space type, here 'state' meaning state information is used.
 obs: state
 # Whether the task is episodic, True indicates it is.
